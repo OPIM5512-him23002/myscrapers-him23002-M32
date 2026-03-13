@@ -39,6 +39,9 @@ storage_client = storage.Client()
 PRICE_RE      = re.compile(r"\$\s?([0-9,]+)")
 YEAR_RE       = re.compile(r"\b(19|20)\d{2}\b")
 MAKE_MODEL_RE = re.compile(r"\b([A-Z][a-z]+)\s+([A-Z][A-Za-z0-9]+)")
+TRANSMISSION_RE = re.compile(r"transmission:\s*(automatic|manual)", re.I)
+CONDITION_RE = re.compile(r"condition:\s*([a-zA-Z]+(?:[ \t]+[a-zA-Z]+)?)", re.I)
+TYPE_RE         = re.compile(r"type:\s*([a-zA-Z]+)", re.I)
 
 # -------------------- HELPERS --------------------
 def _list_run_ids(bucket: str, scrapes_prefix: str) -> list[str]:
@@ -149,6 +152,18 @@ def parse_listing(text: str) -> dict:
     if mi is not None:
         d["mileage"] = mi
 
+    m = TRANSMISSION_RE.search(text)
+    if m:
+        d["transmission"] = m.group(1).lower()
+
+    m = CONDITION_RE.search(text)
+    if m:
+        d["condition"] = m.group(1).lower()
+
+    m = TYPE_RE.search(text)
+    if m:
+        d["type"] = m.group(1).lower()
+        
     return d
 
 # -------------------- HTTP ENTRY --------------------
